@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
     public GameObject obstaclePrefab;
+    public GameObject gameOverScreen;
+    public Text secondsSurvivedText;
+
     public static float obstacleSpeed;
     public Vector2 spawnIntervalMinMax;
     private float spawnInterval;
@@ -18,8 +23,8 @@ public class GameController : MonoBehaviour
     float spawnPosY;
     void Start()
     {
-        difficulty = 0;
-        
+        FindObjectOfType<PlayerController>().OnPlayerDeath += OnGameOver;   
+             
         halfScreenWidth = Camera.main.aspect * Camera.main.orthographicSize;
         spawnPosY = Camera.main.orthographicSize + 2f;
         // StartCoroutine(DifficultyIncrease());
@@ -27,8 +32,19 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
-        Spawn();
-        SetDifficulty();
+        if (gameOver)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
+
+        if (!gameOver)
+        {
+            Spawn();
+            SetDifficulty();
+        }       
     }
 
     private void Spawn()
@@ -49,7 +65,14 @@ public class GameController : MonoBehaviour
     }
     private float GetDifficultyPercent()
     {
-        return Mathf.Clamp01(Time.time/timeToMaxDifficulty);
+        return Mathf.Clamp01(Time.timeSinceLevelLoad/timeToMaxDifficulty);
+    }
+
+    void OnGameOver()
+    {
+        gameOver = true;
+        gameOverScreen.SetActive(true);
+        secondsSurvivedText.text = Mathf.Round(Time.timeSinceLevelLoad).ToString();       
     }
 
     // private IEnumerator DifficultyIncrease()
